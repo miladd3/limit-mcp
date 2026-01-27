@@ -2,6 +2,7 @@
 """Debit Card Limit Management MCP Server - Mock data from JSON files."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -96,5 +97,6 @@ def create_temporary_limit(limit_type: str, limit: int, start_date: str, end_dat
 
 
 if __name__ == "__main__":
-    print("Starting MCP Server on http://localhost:2009/mcp", file=sys.stderr)
-    mcp.run(transport="http", host="0.0.0.0", port=2009, path="/mcp")
+    port = int(os.getenv("PORT", 2009))
+    print(f"Starting MCP Server on http://0.0.0.0:{port}/mcp", file=sys.stderr)
+    mcp.run(transport="http", host="0.0.0.0", port=port, path="/mcp")
