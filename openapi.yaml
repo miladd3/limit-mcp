@@ -1,0 +1,267 @@
+swagger: "2.0"
+info:
+  title: Debit Card Limit Management API
+  description: API for managing debit card transaction limits including POS payments, ATM withdrawals, and E-commerce purchases
+  version: 1.0.0
+  contact:
+    name: API Support
+
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /recieveWebhook:
+    post:
+      summary: Execute card limit management actions
+      description: Main webhook endpoint that handles all card limit operations. Use the 'action' parameter to specify which operation to perform.
+      operationId: executeCardLimitAction
+      tags:
+        - Card Limits
+      parameters:
+        - name: body
+          in: body
+          required: true
+          description: Action request payload
+          schema:
+            $ref: '#/definitions/ActionRequest'
+      responses:
+        '200':
+          description: Action executed successfully
+          schema:
+            $ref: '#/definitions/ActionResponse'
+        '400':
+          description: Bad request - Invalid input
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid or missing enterprise token
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+definitions:
+  ActionRequest:
+    type: object
+    required:
+      - context
+      - privateData
+    properties:
+      context:
+        type: object
+        required:
+          - action
+        properties:
+          action:
+            type: string
+            description: |
+              The action to perform:
+              - getPaymentInstruments: Retrieve all user accounts and cards
+              - changeDefaultLimitPos: Change permanent POS (in-store payment) limit
+              - changeDefaultLimitAtm: Change permanent ATM (cash withdrawal) limit
+              - changeDefaultLimitEcom: Change permanent E-commerce (online payment) limit
+              - createTemporaryLimitPos: Set temporary POS limit with start/end dates
+              - createTemporaryLimitAtm: Set temporary ATM limit with start/end dates
+              - createTemporaryLimitEcom: Set temporary E-commerce limit with start/end dates
+            enum:
+              - getPaymentInstruments
+              - changeDefaultLimitPos
+              - changeDefaultLimitAtm
+              - changeDefaultLimitEcom
+              - createTemporaryLimitPos
+              - createTemporaryLimitAtm
+              - createTemporaryLimitEcom
+            example: getPaymentInstruments
+          limit:
+            type: number
+            description: The new limit amount in dollars (required for all actions except getPaymentInstruments)
+            example: 1500
+            minimum: 0
+          startDate:
+            type: string
+            format: date
+            description: Start date for temporary limits (required only for createTemporaryLimit* actions)
+            example: '2026-01-25'
+          endDate:
+            type: string
+            format: date
+            description: End date for temporary limits (required only for createTemporaryLimit* actions)
+            example: '2026-02-01'
+      privateData:
+        type: object
+        required:
+          - enterpriseToken
+        properties:
+          enterpriseToken:
+            type: string
+            description: JWT token for enterprise authentication
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+  ActionResponse:
+    type: object
+    required:
+      - success
+      - isAllowed
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the operation was successful
+        example: true
+      isAllowed:
+        type: boolean
+        description: Indicates if the user is allowed to perform the action
+        example: true
+      context:
+        type: object
+        description: Response data for getPaymentInstruments action
+        properties:
+          accounts:
+            type: array
+            description: List of user accounts with associated cards
+            items:
+              $ref: '#/definitions/Account'
+      privateData:
+        type: object
+        description: Card details and limit information (returned for limit change actions)
+        properties:
+          cardNumber:
+            type: string
+            description: Masked card number
+            example: '****1234'
+          cardHolderName:
+            type: string
+            description: Name of the card holder
+            example: John Doe
+          currentLimits:
+            $ref: '#/definitions/CardLimits'
+          temporaryLimits:
+            type: array
+            description: List of active temporary limits
+            items:
+              $ref: '#/definitions/TemporaryLimit'
+
+  Account:
+    type: object
+    description: Bank account with associated debit cards
+    properties:
+      accountId:
+        type: string
+        description: Unique account identifier
+        example: '123456789'
+      accountNumber:
+        type: string
+        description: Masked account number
+        example: '****5678'
+      accountType:
+        type: string
+        description: Type of account
+        enum: [checking, savings]
+        example: checking
+      balance:
+        type: number
+        description: Current account balance
+        example: 15000
+      currency:
+        type: string
+        description: Account currency code
+        example: USD
+      cards:
+        type: array
+        description: Debit cards associated with this account
+        items:
+          $ref: '#/definitions/Card'
+
+  Card:
+    type: object
+    description: Debit card information with transaction limits
+    properties:
+      cardId:
+        type: string
+        description: Unique card identifier
+        example: card-001
+      cardNumber:
+        type: string
+        description: Masked card number
+        example: '****1234'
+      cardHolderName:
+        type: string
+        description: Name on the card
+        example: John Doe
+      cardType:
+        type: string
+        description: Type of card
+        example: debit
+      status:
+        type: string
+        description: Current card status
+        enum: [active, inactive, blocked]
+        example: active
+      currentLimits:
+        $ref: '#/definitions/CardLimits'
+      temporaryLimits:
+        type: array
+        description: List of active temporary limits
+        items:
+          $ref: '#/definitions/TemporaryLimit'
+
+  CardLimits:
+    type: object
+    description: Current transaction limits for the card
+    properties:
+      pos:
+        type: number
+        description: POS (Point of Sale / in-store payment) limit in dollars
+        example: 1000
+      atm:
+        type: number
+        description: ATM (cash withdrawal) limit in dollars
+        example: 500
+      ecom:
+        type: number
+        description: E-commerce (online payment) limit in dollars
+        example: 2000
+
+  TemporaryLimit:
+    type: object
+    description: Temporary limit with expiration date
+    properties:
+      type:
+        type: string
+        description: Transaction type for this temporary limit
+        enum: [pos, atm, ecom]
+        example: pos
+      limit:
+        type: number
+        description: Temporary limit amount in dollars
+        example: 3000
+      startDate:
+        type: string
+        format: date
+        description: Start date of the temporary limit
+        example: '2026-01-25'
+      endDate:
+        type: string
+        format: date
+        description: End date of the temporary limit
+        example: '2026-02-01'
+
+  ErrorResponse:
+    type: object
+    properties:
+      error:
+        type: string
+        description: Error message describing what went wrong
+        example: Invalid action type or missing required fields
+
+tags:
+  - name: Card Limits
+    description: Operations for managing debit card transaction limits
