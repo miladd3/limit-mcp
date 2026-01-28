@@ -83,7 +83,7 @@ definitions:
             example: getPaymentInstruments
           limit:
             type: number
-            description: The new limit amount in dollars (required for all actions except getPaymentInstruments)
+            description: The new limit amount in euros (required for all actions except getPaymentInstruments)
             example: 1500
             minimum: 0
           startDate:
@@ -219,15 +219,15 @@ definitions:
     properties:
       pos:
         type: number
-        description: POS (Point of Sale / in-store payment) limit in dollars
+        description: POS (Point of Sale / in-store payment) limit in euros
         example: 1000
       atm:
         type: number
-        description: ATM (cash withdrawal) limit in dollars
+        description: ATM (cash withdrawal) limit in euros
         example: 500
       ecom:
         type: number
-        description: E-commerce (online payment) limit in dollars
+        description: E-commerce (online payment) limit in euros
         example: 2000
 
   TemporaryLimit:
@@ -241,7 +241,7 @@ definitions:
         example: pos
       limit:
         type: number
-        description: Temporary limit amount in dollars
+        description: Temporary limit amount in euros
         example: 3000
       startDate:
         type: string

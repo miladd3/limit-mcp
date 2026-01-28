@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Anna - Card Limit Manager</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 450px;
+      height: 600px;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #5c6bc0 0%, #7e57c2 100%);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-header .bot-avatar {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .chat-header .bot-info h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .chat-header .bot-info span {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4caf50;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .chat-iframe {
+      width: 100%;
+      height: calc(100% - 70px);
+      border: none;
+    }
+
+    .footer {
+      margin-top: 20px;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .chat-container {
+        height: calc(100vh - 180px);
+        border-radius: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="avatar">👩‍💼</div>
+    <h1>Chatbot Anna</h1>
+    <p>Your Card Limit Management Assistant</p>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="bot-avatar">👩‍💼</div>
+      <div class="bot-info">
+        <h2>Anna</h2>
+        <span><span class="status-dot"></span>Online</span>
+      </div>
+    </div>
+    <iframe 
+      class="chat-iframe"
+      src="https://copilotstudio.preview.microsoft.com/environments/d4c7b125-cf6c-e22e-b6e7-28cec81eb617/bots/crbcf_agent/webchat?__version__=2"
+      allow="microphone *"
+    ></iframe>
+  </div>
+
+  <div class="footer">
+    Powered by Microsoft Copilot Studio
+  </div>
+</body>
+</html>

@@ -60,7 +60,7 @@ def change_limit(limit_type: str, limit: int) -> dict:
             - "pos": POS / Point of Sale / in-store payment limit
             - "atm": ATM / cash withdrawal limit
             - "ecom": E-commerce / online payment limit
-        limit: New limit amount in dollars
+        limit: New limit amount in euros
     """
     if limit_type not in ("pos", "atm", "ecom"):
         return {"error": f"Invalid limit_type: {limit_type}. Must be pos, atm, or ecom"}
@@ -82,7 +82,7 @@ def create_temporary_limit(limit_type: str, limit: int, start_date: str, end_dat
             - "pos": POS / Point of Sale / in-store payment limit
             - "atm": ATM / cash withdrawal limit
             - "ecom": E-commerce / online payment limit
-        limit: Temporary limit amount in dollars
+        limit: Temporary limit amount in euros
         start_date: Start date in YYYY-MM-DD format
         end_date: End date in YYYY-MM-DD format
     """

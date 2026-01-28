@@ -49,7 +49,7 @@ MCP Response structure:
 **Example Message:** "Which card would you like to modify?"
 
 **Show as buttons (from MCP response):**
-- Card {card.cardNumber} ({card.cardHolderName}) - POS: ${card.currentLimits.pos}, ATM: ${card.currentLimits.atm}, E-com: ${card.currentLimits.ecom}
+- Card {card.cardNumber} ({card.cardHolderName}) - POS: €{card.currentLimits.pos}, ATM: €{card.currentLimits.atm}, E-com: €{card.currentLimits.ecom}
 - (repeat for each card in accounts)
 
 **Data source:** `get_payment_instruments()` MCP response
@@ -60,16 +60,16 @@ MCP Response structure:
 **Example Message:** "What type of limit would you like to change for {cardNumber}?"
 
 **Show as buttons:**
-- [POS - In-store payments (Current: ${card.currentLimits.pos})]
-- [ATM - Cash withdrawals (Current: ${card.currentLimits.atm})]
-- [E-commerce - Online purchases (Current: ${card.currentLimits.ecom})]
+- [POS - In-store payments (Current: €{card.currentLimits.pos})]
+- [ATM - Cash withdrawals (Current: €{card.currentLimits.atm})]
+- [E-commerce - Online purchases (Current: €{card.currentLimits.ecom})]
 
 **Data source:** Use `currentLimits` from Step 2 MCP response
 
 ### Step 4: Enter Limit Amount
 **Description:** Get new limit amount from user based on selected transaction type.
 
-**Example Message:** "What's your new {type} limit? (Current: ${current_limit})"
+**Example Message:** "What's your new {type} limit? (Current: €{current_limit})"
 
 User enters a number. Use Question Node with Number entity.
 
@@ -100,8 +100,8 @@ Use Question Node with Date entity. Validate end_date > start_date.
 ```
 Card: {cardNumber} ({cardHolderName})
 Type: {type} ({type_description})
-Current Limit: ${current_limit}
-New Limit: ${new_limit}
+Current Limit: €{current_limit}
+New Limit: €{new_limit}
 Duration: {duration_text}
 
 Confirm this change?
@@ -131,14 +131,14 @@ MCP Response contains: `cardId`, `created` object with the new temporary limit d
 
 **Example Message:**
 ```
-✓ Success! {type} limit updated to ${new_limit}
+✓ Success! {type} limit updated to €{new_limit}
 
 Card: {cardNumber}
 
 Current Limits:
-• POS: ${limits.pos}
-• ATM: ${limits.atm}
-• E-commerce: ${limits.ecom}
+• POS: €{limits.pos}
+• ATM: €{limits.atm}
+• E-commerce: €{limits.ecom}
 
 {temporary_limits_section}
 ```
@@ -146,7 +146,7 @@ Current Limits:
 **Temporary limits section (if exists):**
 ```
 Active Temporary Limits:
-• {type}: ${temp_limit.limit} ({temp_limit.startDate} to {temp_limit.endDate})
+• {type}: €{temp_limit.limit} ({temp_limit.startDate} to {temp_limit.endDate})
 ```
 
 **Data source:** Use response from `change_limit()` or `create_temporary_limit()` MCP call

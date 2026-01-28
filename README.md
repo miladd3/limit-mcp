@@ -111,7 +111,7 @@ Change a card transaction limit.
 
 **Parameters:**
 - `limit_type` (string): Type of limit - `"pos"`, `"atm"`, or `"ecom"`
-- `limit` (integer): New limit amount in dollars
+- `limit` (integer): New limit amount in euros
 
 **Example:**
 ```json
@@ -137,7 +137,7 @@ Create a temporary transaction limit override.
 
 **Parameters:**
 - `limit_type` (string): Type of limit - `"pos"`, `"atm"`, or `"ecom"`
-- `limit` (integer): Temporary limit amount in dollars
+- `limit` (integer): Temporary limit amount in euros
 - `start_date` (string): Start date in YYYY-MM-DD format
 - `end_date` (string): End date in YYYY-MM-DD format
 
