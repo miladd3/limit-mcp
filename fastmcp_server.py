@@ -1,53 +1,71 @@
 #!/usr/bin/env python3
-"""Debit Card Limit Management MCP Server - Mock data from JSON files."""
+"""Debit Card Limit Management MCP Server backed by limit-api."""
 
-import json
 import os
 import sys
-from pathlib import Path
+from urllib import error, request
+
+import json
 
 from fastmcp import FastMCP
 
-DATA_DIR = Path(__file__).parent / "data"
 DEFAULT_CARD_ID = "CARD-001"
+DEFAULT_API_BASE_URL = "http://127.0.0.1:2010"
 
 mcp = FastMCP("Card Limit Manager 💳")
 
 
-def load_json(filename: str) -> dict | list:
-    return json.loads((DATA_DIR / filename).read_text())
+def get_api_base_url() -> str:
+    return os.getenv("LIMIT_API_BASE_URL", DEFAULT_API_BASE_URL).rstrip("/")
 
 
-def save_json(filename: str, data: dict | list) -> None:
-    (DATA_DIR / filename).write_text(json.dumps(data, indent=2))
+def call_api(method: str, path: str, payload: dict | None = None) -> dict:
+    base_url = get_api_base_url()
+    url = f"{base_url}{path}"
+    body = None
+    headers = {"Accept": "application/json"}
+
+    if payload is not None:
+        body = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+
+    req = request.Request(url=url, data=body, method=method, headers=headers)
+    try:
+        with request.urlopen(req, timeout=10) as response:
+            raw_body = response.read().decode("utf-8")
+            return json.loads(raw_body) if raw_body else {}
+    except error.HTTPError as exc:
+        # Normalize API error payloads for MCP clients.
+        response_body = exc.read().decode("utf-8") if exc.fp else ""
+        parsed = {}
+        if response_body:
+            try:
+                parsed = json.loads(response_body)
+            except json.JSONDecodeError:
+                parsed = {}
+        detail = parsed.get("detail") if isinstance(parsed, dict) else None
+        return {
+            "error": detail or f"API returned HTTP {exc.code}",
+            "status": exc.code,
+        }
+    except error.URLError as exc:
+        return {
+            "error": "Could not reach limit-api. Ensure it is running.",
+            "details": str(exc.reason),
+            "apiBaseUrl": base_url,
+        }
 
 
 @mcp.tool()
 def get_payment_instruments() -> dict:
     """Retrieve all user accounts and associated debit cards with their current limits."""
-    accounts = load_json("accounts.json")
-    limits = load_json("limits.json")
-    temp_limits = load_json("temporary_limits.json")
-
-    for account in accounts:
-        for card in account["cards"]:
-            card["currentLimits"] = limits.get(card["cardId"], {})
-            card["temporaryLimits"] = temp_limits.get(card["cardId"], [])
-
-    return {"accounts": accounts}
+    return call_api("GET", "/accounts")
 
 
 @mcp.tool()
 def get_current_limits() -> dict:
     """Get current limits for the default card."""
-    limits = load_json("limits.json")
-    temp_limits = load_json("temporary_limits.json")
-
-    return {
-        "cardId": DEFAULT_CARD_ID,
-        "limits": limits.get(DEFAULT_CARD_ID, {}),
-        "temporaryLimits": temp_limits.get(DEFAULT_CARD_ID, []),
-    }
+    return call_api("GET", "/cards/default/limits")
 
 
 @mcp.tool()
@@ -64,12 +82,12 @@ def change_limit(limit_type: str, limit: int) -> dict:
     """
     if limit_type not in ("pos", "atm", "ecom"):
         return {"error": f"Invalid limit_type: {limit_type}. Must be pos, atm, or ecom"}
-    
-    limits = load_json("limits.json")
-    old = limits[DEFAULT_CARD_ID][limit_type]
-    limits[DEFAULT_CARD_ID][limit_type] = limit
-    save_json("limits.json", limits)
-    return {"cardId": DEFAULT_CARD_ID, "type": limit_type, "old": old, "new": limit}
+
+    return call_api(
+        "PATCH",
+        f"/cards/{DEFAULT_CARD_ID}/limits/{limit_type}",
+        payload={"limit": limit},
+    )
 
 
 @mcp.tool()
@@ -88,15 +106,18 @@ def create_temporary_limit(limit_type: str, limit: int, start_date: str, end_dat
     """
     if limit_type not in ("pos", "atm", "ecom"):
         return {"error": f"Invalid limit_type: {limit_type}. Must be pos, atm, or ecom"}
-    
-    temp_limits = load_json("temporary_limits.json")
-    entry = {"type": limit_type, "limit": limit, "startDate": start_date, "endDate": end_date}
-    temp_limits[DEFAULT_CARD_ID].append(entry)
-    save_json("temporary_limits.json", temp_limits)
-    return {"cardId": DEFAULT_CARD_ID, "created": entry}
+
+    return call_api(
+        "POST",
+        f"/cards/{DEFAULT_CARD_ID}/temporary-limits/{limit_type}",
+        payload={"limit": limit, "startDate": start_date, "endDate": end_date},
+    )
 
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 2009))
-    print(f"Starting MCP Server on http://0.0.0.0:{port}/mcp", file=sys.stderr)
+    print(
+        f"Starting MCP Server on http://0.0.0.0:{port}/mcp (API: {get_api_base_url()})",
+        file=sys.stderr,
+    )
     mcp.run(transport="http", host="0.0.0.0", port=port, path="/mcp")

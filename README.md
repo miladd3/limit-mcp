@@ -1,6 +1,6 @@
 # Card Limit Manager 💳
 
-A Model Context Protocol (MCP) server for managing debit card transaction limits including POS payments, ATM withdrawals, and E-commerce purchases. Built with [FastMCP](https://github.com/jlopp/fastmcp).
+A Model Context Protocol (MCP) server for managing debit card transaction limits including POS payments, ATM withdrawals, and E-commerce purchases. Built with [FastMCP](https://github.com/jlopp/fastmcp), and backed by the REST API in `../limit-api`.
 
 ## Features
 
@@ -8,7 +8,7 @@ A Model Context Protocol (MCP) server for managing debit card transaction limits
 - **Get Current Limits**: View limits for the default card
 - **Change Transaction Limits**: Update permanent limits for POS, ATM, or E-commerce transactions
 - **Create Temporary Limits**: Set temporary limit overrides with start and end dates
-- **Mock Data**: All data is stored in JSON files for easy testing and modification
+- **API-Backed**: All business logic and data access are delegated to `limit-api`
 
 ## Project Structure
 
@@ -18,10 +18,7 @@ A Model Context Protocol (MCP) server for managing debit card transaction limits
 ├── requirements.txt            # Python dependencies
 ├── openapi.yaml               # API specification
 ├── README.md                  # This file
-└── data/
-    ├── accounts.json          # Account and card information
-    ├── limits.json            # Current transaction limits
-    └── temporary_limits.json   # Active temporary limit overrides
+└── data/                       # Legacy mock files (no longer used by MCP runtime)
 ```
 
 ## Setup
@@ -46,11 +43,27 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 ## Running the Server
 
+1. Start the REST API first:
+
 ```bash
+cd /home/milad/Projects/limit-api
+uvicorn main:app --reload --host 0.0.0.0 --port 2010
+```
+
+2. Start the MCP server:
+
+```bash
+cd /home/milad/Projects/limit-mcp
 python fastmcp_server.py
 ```
 
 The server will start on `http://localhost:2009/mcp`
+
+By default, MCP calls `http://127.0.0.1:2010`. To target another API host:
+
+```bash
+LIMIT_API_BASE_URL=http://your-api-host:2010 python fastmcp_server.py
+```
 
 ## Available Tools
 
@@ -164,42 +177,10 @@ Create a temporary transaction limit override.
 }
 ```
 
-## Data Files
+## Data Ownership
 
-### `data/accounts.json`
-
-Contains account information and card details. Modify this file to add/update accounts and cards.
-
-### `data/limits.json`
-
-Stores current transaction limits per card. Updated when `change_limit()` is called.
-
-```json
-{
-  "CARD-001": {
-    "pos": 1000,
-    "atm": 500,
-    "ecom": 2000
-  }
-}
-```
-
-### `data/temporary_limits.json`
-
-Stores active temporary limit overrides. Updated when `create_temporary_limit()` is called.
-
-```json
-{
-  "CARD-001": [
-    {
-      "type": "pos",
-      "limit": 1500,
-      "startDate": "2026-01-27",
-      "endDate": "2026-02-01"
-    }
-  ]
-}
-```
+MCP does not read or write card-limit JSON files directly anymore.
+All reads/writes happen through `limit-api`, which owns validation and persistence.
 
 ## Limit Types
 
