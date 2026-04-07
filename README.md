@@ -15,7 +15,7 @@ A Model Context Protocol (MCP) server for managing debit card transaction limits
 ```
 .
 ├── fastmcp_server.py           # MCP server implementation
-├── requirements.txt            # Python dependencies
+├── pyproject.toml              # Python project & dependencies
 ├── openapi.yaml               # API specification
 ├── README.md                  # This file
 └── data/                       # Legacy mock files (no longer used by MCP runtime)
@@ -25,20 +25,13 @@ A Model Context Protocol (MCP) server for managing debit card transaction limits
 
 ### Prerequisites
 
-- Python 3.8+
-- FastMCP
+- Python 3.14+
+- [uv](https://docs.astral.sh/uv/)
 
 ### Installation
 
-1. Install dependencies:
 ```bash
-pip install -r requirements.txt
-```
-
-2. (Optional) Create a virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv sync
 ```
 
 ## Running the Server
@@ -47,14 +40,14 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 ```bash
 cd /home/milad/Projects/limit-api
-uvicorn main:app --reload --host 0.0.0.0 --port 2010
+uv run uvicorn main:app --reload --host 0.0.0.0 --port 2010
 ```
 
 2. Start the MCP server:
 
 ```bash
 cd /home/milad/Projects/limit-mcp
-python fastmcp_server.py
+uv run python fastmcp_server.py
 ```
 
 The server will start on `http://localhost:2009/mcp`
@@ -62,7 +55,7 @@ The server will start on `http://localhost:2009/mcp`
 By default, MCP calls `http://127.0.0.1:2010`. To target another API host:
 
 ```bash
-LIMIT_API_BASE_URL=http://your-api-host:2010 python fastmcp_server.py
+LIMIT_API_BASE_URL=http://your-api-host:2010 uv run python fastmcp_server.py
 ```
 
 ## Available Tools

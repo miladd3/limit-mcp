@@ -1,0 +1,9 @@
+[project]
+name = "limit-mcp"
+version = "0.1.0"
+description = "MCP server for managing debit card transaction limits, backed by limit-api."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastmcp>=0.1.0",
+]
